@@ -4,7 +4,21 @@ My Git learning project.
 
 ## Description
 
-T.B.D.
+
+
+@import "test.puml"
+
+```plantuml
+@startuml aaa
+title サンプルクラス図
+class Encoder {
+   + translate()
+}
+Interface Reader
+Reader <|-- CsvReader
+Encoder .> Reader
+@enduml
+
 
 ## Getting Started
 
@@ -32,4 +46,3 @@ T.B.D.
 ```
 T.B.D.
 ```
-
