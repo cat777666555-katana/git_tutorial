@@ -4,12 +4,10 @@ My Git learning project.
 
 ## Description
 
-
-
 @import "test.puml"
 
 ```plantuml
-@startuml aaa
+@startuml
 title サンプルクラス図
 class Encoder {
    + translate()
@@ -19,15 +17,11 @@ Reader <|-- CsvReader
 Encoder .> Reader
 @enduml
 
+```
 
 ## Getting Started
 
 ### Dependencies
-
-* T.B.D.
-* T.B.D.
-
-### Installing
 
 * T.B.D.
 * T.B.D.
@@ -46,3 +40,6 @@ T.B.D.
 ```
 T.B.D.
 ```
+
+# Reference
+
