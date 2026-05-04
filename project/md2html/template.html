@@ -1,21 +1,22 @@
 <!DOCTYPE html>
-<script>
-  // ページ描画前にテーマを適用（チラつき防止）
-  (function() {
-    const mode = localStorage.getItem("theme");
-    if (mode === "dark") {
-      document.documentElement.classList.add("dark");
-    }
-  })();
-</script>
 
 <html>
 <head>
+  <script>
+    (function() {
+      const mode = localStorage.getItem("theme");
+      if (mode === "dark") {
+        document.documentElement.classList.add("dark");
+      }
+    })();
+  </script>
+
   <meta charset="utf-8">
   <title>$title$</title>
   <link rel="stylesheet" href="$css$">
   <script src="search.js"></script>
 </head>
+
 <body>
 
 <div id="sidebar">
@@ -36,6 +37,77 @@ $body$
 </div>
 
 <script>
+/* ------------------------------
+   初期ダークモード（チラつき防止）
+------------------------------ */
+(function() {
+  const mode = localStorage.getItem("theme");
+  if (mode === "dark") {
+    document.documentElement.classList.add("dark");
+  }
+})();
+
+/* ------------------------------
+   ダークモード切り替え
+------------------------------ */
+function setupDarkMode() {
+  const btn = document.getElementById("toggleDark");
+
+  btn.addEventListener("click", () => {
+    document.documentElement.classList.toggle("dark");
+
+    if (document.documentElement.classList.contains("dark")) {
+      localStorage.setItem("theme", "dark");
+    } else {
+      localStorage.setItem("theme", "light");
+    }
+  });
+}
+
+/* ------------------------------
+   サイドバー幅保持
+------------------------------ */
+function setupSidebarResize() {
+  const sidebar = document.getElementById("sidebar");
+  const resizer = document.getElementById("sidebar-resizer");
+
+  // 初期復元
+  const savedWidth = localStorage.getItem("sidebarWidth");
+  if (savedWidth) {
+    sidebar.style.width = savedWidth + "px";
+    document.getElementById("content").style.marginLeft = (parseInt(savedWidth) + 20) + "px";
+  }
+
+  let dragging = false;
+
+  resizer.addEventListener("mousedown", () => dragging = true);
+  document.addEventListener("mouseup", () => dragging = false);
+
+  document.addEventListener("mousemove", e => {
+    if (!dragging) return;
+
+    const newWidth = Math.max(200, Math.min(500, e.clientX));
+    sidebar.style.width = newWidth + "px";
+    document.getElementById("content").style.marginLeft = (newWidth + 20) + "px";
+
+    localStorage.setItem("sidebarWidth", newWidth);
+  });
+}
+
+/* ------------------------------
+   ズーム保持
+------------------------------ */
+function setupZoom() {
+  const savedZoom = localStorage.getItem("zoomLevel");
+  if (savedZoom) {
+    document.body.style.zoom = savedZoom;
+  }
+}
+
+function setZoom(level) {
+  document.body.style.zoom = level;
+  localStorage.setItem("zoomLevel", level);
+}
 
 /* ------------------------------
    折りたたみツリー
@@ -86,60 +158,18 @@ function highlightCurrentPage() {
 }
 
 /* ------------------------------
-   サイドバー幅変更
+   初期化
 ------------------------------ */
-function setupSidebarResize() {
-  const sidebar = document.getElementById("sidebar");
-  const resizer = document.getElementById("sidebar-resizer");
-
-  let dragging = false;
-
-  resizer.addEventListener("mousedown", () => dragging = true);
-  document.addEventListener("mouseup", () => dragging = false);
-
-  document.addEventListener("mousemove", e => {
-    if (!dragging) return;
-    const newWidth = Math.max(200, Math.min(500, e.clientX));
-    sidebar.style.width = newWidth + "px";
-    document.getElementById("content").style.marginLeft = (newWidth + 20) + "px";
-  });
-}
-
-/* ------------------------------
-   ダークモード
------------------------------- */
-// ページ読み込み時にダークモードを復元
 document.addEventListener("DOMContentLoaded", () => {
-  const mode = localStorage.getItem("theme");
-  if (mode === "dark") {
-    document.body.classList.add("dark");
-  }
+  setupTree();
+  highlightCurrentPage();
+  setupSearch();
+  setupSidebarResize();
+  setupDarkMode();
+  setupZoom();
 });
-
-document.getElementById("toggleDark").addEventListener("click", () => {
-  document.documentElement.classList.toggle("dark");
-
-  if (document.documentElement.classList.contains("dark")) {
-    localStorage.setItem("theme", "dark");
-  } else {
-    localStorage.setItem("theme", "light");
-  }
-});
-
-function setupDarkMode() {
-  const btn = document.getElementById("toggleDark");
-  btn.addEventListener("click", () => {
-    document.body.classList.toggle("dark");
-  });
-}
 </script>
-<script>
-setupTree();
-highlightCurrentPage();
-setupSearch();
-setupSidebarResize();
-setupDarkMode();
-</script>
+
 </body>
 </html>
 

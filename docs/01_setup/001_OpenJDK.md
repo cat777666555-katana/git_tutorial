@@ -2,7 +2,7 @@
 
 ## Installing 
 
-```
+```console
 > winget search Microsoft.OpenJDK
 > winget install Microsoft.OpenJDK.25
 > java --version
