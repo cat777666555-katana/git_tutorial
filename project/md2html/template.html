@@ -9,12 +9,16 @@
 <body>
 
 <div id="sidebar">
-  <input type="text" id="searchBox" placeholder="検索...">
+  <div id="sidebar-header">
+    <input type="text" id="searchBox" placeholder="検索...">
+    <button id="toggleDark">🌙</button>
+  </div>
 
   <div id="nav">
 $include-before$
   </div>
 
+  <div id="sidebar-resizer"></div>
 </div>
 
 <div id="content">
@@ -22,9 +26,92 @@ $body$
 </div>
 
 <script>
+
+/* ------------------------------
+   折りたたみツリー
+------------------------------ */
+function setupTree() {
+  document.querySelectorAll("#nav li").forEach(li => {
+    const sub = li.querySelector("ul");
+    const link = li.querySelector("a");
+
+    if (sub) {
+      const toggle = document.createElement("span");
+      toggle.className = "toggle";
+      li.insertBefore(toggle, li.firstChild);
+
+      li.classList.add("folder");
+
+      toggle.addEventListener("click", () => {
+        li.classList.toggle("open");
+        sub.style.display = li.classList.contains("open") ? "block" : "none";
+      });
+
+      sub.style.display = "none";
+    } else if (link) {
+      li.classList.add("file");
+    }
+  });
+}
+
+/* ------------------------------
+   現在ページハイライト
+------------------------------ */
+function highlightCurrentPage() {
+  const current = location.pathname.split("/").pop();
+  document.querySelectorAll("#nav a").forEach(a => {
+    if (a.getAttribute("href") === current) {
+      a.classList.add("current-page");
+      let parent = a.parentElement;
+      while (parent && parent.id !== "nav") {
+        if (parent.tagName === "LI") {
+          parent.classList.add("open");
+          const sub = parent.querySelector("ul");
+          if (sub) sub.style.display = "block";
+        }
+        parent = parent.parentElement;
+      }
+    }
+  });
+}
+
+/* ------------------------------
+   サイドバー幅変更
+------------------------------ */
+function setupSidebarResize() {
+  const sidebar = document.getElementById("sidebar");
+  const resizer = document.getElementById("sidebar-resizer");
+
+  let dragging = false;
+
+  resizer.addEventListener("mousedown", () => dragging = true);
+  document.addEventListener("mouseup", () => dragging = false);
+
+  document.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    const newWidth = Math.max(200, Math.min(500, e.clientX));
+    sidebar.style.width = newWidth + "px";
+    document.getElementById("content").style.marginLeft = (newWidth + 20) + "px";
+  });
+}
+
+/* ------------------------------
+   ダークモード
+------------------------------ */
+function setupDarkMode() {
+  const btn = document.getElementById("toggleDark");
+  btn.addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+  });
+}
+</script>
+<script>
+setupTree();
 highlightCurrentPage();
 setupSearch();
+setupSidebarResize();
+setupDarkMode();
 </script>
-
 </body>
 </html>
+

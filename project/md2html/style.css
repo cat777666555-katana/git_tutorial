@@ -1,8 +1,14 @@
+/* ------------------------------
+   基本レイアウト
+------------------------------ */
 body {
   margin: 0;
   font-family: sans-serif;
+  background: #e9ecef;
+  transition: background 0.3s, color 0.3s;
 }
 
+/* サイドバー */
 #sidebar {
   position: fixed;
   top: 0;
@@ -10,28 +16,134 @@ body {
   width: 260px;
   height: 100%;
   overflow-y: auto;
-  background: #f4f4f4;
-  padding: 20px;
+  background: #f8f9fa;
   border-right: 1px solid #ccc;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  transition: background 0.3s, color 0.3s;
+}
+
+/* サイドバー上部（検索＋ダークモード） */
+#sidebar-header {
+  display: flex;
+  gap: 8px;
+  padding: 15px;
+  border-bottom: 1px solid #ccc;
+  background: #fff;
 }
 
 #searchBox {
-  width: 100%;
+  flex: 1;
   padding: 8px;
-  margin-bottom: 10px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
 }
 
-#content {
-  margin-left: 280px;
-  padding: 20px;
+#toggleDark {
+  padding: 8px 10px;
+  cursor: pointer;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+  background: #eee;
 }
 
+/* NAV ツリー */
+#nav {
+  padding: 15px;
+}
+
+#nav ul {
+  list-style-type: none;
+  padding-left: 18px;
+}
+
+#nav li {
+  margin: 4px 0;
+  cursor: pointer;
+}
+
+/* アイコン */
+.folder::before {
+  content: "📁 ";
+}
+
+.file::before {
+  content: "📄 ";
+}
+
+/* 折りたたみアイコン */
+.toggle {
+  cursor: pointer;
+  margin-right: 4px;
+  user-select: none;
+}
+
+.toggle::before {
+  content: "▶ ";
+}
+
+.open > .toggle::before {
+  content: "▼ ";
+}
+
+/* 現在ページ */
 .current-page {
   font-weight: bold;
   color: #d63384;
 }
 
+/* 本文（カード風） */
 #content {
-    padding: 20px 30px;   /* 上下20px 左右30px の余白 */
+  margin-left: 280px;
+  padding: 30px;
 }
 
+#content > * {
+  background: #fff;
+  padding: 25px 30px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  margin-bottom: 20px;
+}
+
+/* ------------------------------
+   サイドバー幅変更
+------------------------------ */
+#sidebar-resizer {
+  width: 6px;
+  cursor: ew-resize;
+  background: #ccc;
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+}
+
+/* ------------------------------
+   ダークモード
+------------------------------ */
+body.dark {
+  background: #1e1e1e;
+  color: #ddd;
+}
+
+body.dark #sidebar {
+  background: #2b2b2b;
+  border-right: 1px solid #444;
+}
+
+body.dark #sidebar-header {
+  background: #333;
+  border-bottom: 1px solid #444;
+}
+
+body.dark #content > * {
+  background: #2b2b2b;
+  color: #ddd;
+  box-shadow: none;
+}
+
+body.dark a {
+  color: #9cf;
+}

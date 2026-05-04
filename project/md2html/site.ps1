@@ -19,12 +19,13 @@ New-Item -ItemType Directory -Path $OutDir | Out-Null
 
 # docs 以下の md を再帰的に取得
 $files = Get-ChildItem -Path $DocsRoot -Filter *.md -Recurse
+$navFiles = $files | Where-Object { $_.Name -ne "index.md" }
 
 # -------------------------
 # ① ツリーナビ用データ構造生成
 # -------------------------
 $tree = @{}
-foreach ($file in $files) {
+foreach ($file in $navFiles) {
 
     $relative = $file.FullName.Substring($DocsRoot.Length).TrimStart("\","/")
     $parts = $relative -split '\\'
@@ -49,7 +50,7 @@ function Build-NavHtml($tree, $indent) {
     $html = "<ul>$nl"
 
     if ($indent -eq "") {
-        $html += "<li><a href=""top.html"">Top</a></li>$nl"
+        $html += "<li><a href=""index.html"">Top</a></li>$nl"
     }
 
     foreach ($key in ($tree.Keys | Sort-Object)) {
@@ -125,51 +126,3 @@ Write-Host "=== サイト生成完了 ==="
 Write-Host "出力: $OutDir"
 Write-Host ""
 
-# -------------------------
-# ⑤ Top ページ生成（リンクもフラット名）
-# -------------------------
-$links = @()
-foreach ($file in $files) {
-    $relative = $file.FullName.Substring($DocsRoot.Length).TrimStart("\","/")
-    $flatName = ($relative -replace '\\','_') -replace '\.md$', '.html'
-    $links += "<li><a href=""$flatName"">$relative</a></li>"
-}
-
-$navContent = Get-Content "$OutDir\nav.html" -Raw
-
-$topHtml = @"
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Top</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="search.js"></script>
-</head>
-<body>
-
-<div id="sidebar">
-  <input type="text" id="searchBox" placeholder="検索...">
-
-  <div id="nav">
-$navContent
-  </div>
-</div>
-
-<div id="content">
-  <h1>Top</h1>
-  <ul>
-    $($links -join "`r`n")
-  </ul>
-</div>
-
-<script>
-highlightCurrentPage();
-setupSearch();
-</script>
-
-</body>
-</html>
-"@
-
-Set-Content -Path "$OutDir\top.html" -Value $topHtml -Encoding UTF8
