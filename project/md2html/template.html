@@ -1,4 +1,14 @@
 <!DOCTYPE html>
+<script>
+  // ページ描画前にテーマを適用（チラつき防止）
+  (function() {
+    const mode = localStorage.getItem("theme");
+    if (mode === "dark") {
+      document.documentElement.classList.add("dark");
+    }
+  })();
+</script>
+
 <html>
 <head>
   <meta charset="utf-8">
@@ -98,6 +108,24 @@ function setupSidebarResize() {
 /* ------------------------------
    ダークモード
 ------------------------------ */
+// ページ読み込み時にダークモードを復元
+document.addEventListener("DOMContentLoaded", () => {
+  const mode = localStorage.getItem("theme");
+  if (mode === "dark") {
+    document.body.classList.add("dark");
+  }
+});
+
+document.getElementById("toggleDark").addEventListener("click", () => {
+  document.documentElement.classList.toggle("dark");
+
+  if (document.documentElement.classList.contains("dark")) {
+    localStorage.setItem("theme", "dark");
+  } else {
+    localStorage.setItem("theme", "light");
+  }
+});
+
 function setupDarkMode() {
   const btn = document.getElementById("toggleDark");
   btn.addEventListener("click", () => {

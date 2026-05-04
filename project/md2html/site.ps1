@@ -110,6 +110,7 @@ foreach ($file in $files) {
         --template=$Template `
         --include-before-body="$OutDir\nav.html" `
         --css="style.css" `
+        --syntax-highlighting=pygments `
         --lua-filter="plantuml.lua" `
         -o $outPath `
         $file.FullName

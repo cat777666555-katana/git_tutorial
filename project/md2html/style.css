@@ -8,7 +8,9 @@ body {
   transition: background 0.3s, color 0.3s;
 }
 
-/* サイドバー */
+/* ------------------------------
+   サイドバー
+------------------------------ */
 #sidebar {
   position: fixed;
   top: 0;
@@ -24,7 +26,6 @@ body {
   transition: background 0.3s, color 0.3s;
 }
 
-/* サイドバー上部（検索＋ダークモード） */
 #sidebar-header {
   display: flex;
   gap: 8px;
@@ -48,7 +49,7 @@ body {
   background: #eee;
 }
 
-/* NAV ツリー */
+/* NAV */
 #nav {
   padding: 15px;
 }
@@ -63,48 +64,138 @@ body {
   cursor: pointer;
 }
 
-/* アイコン */
-.folder::before {
-  content: "📁 ";
-}
+.folder::before { content: "📁 "; }
+.file::before { content: "📄 "; }
 
-.file::before {
-  content: "📄 ";
-}
+.toggle { cursor: pointer; margin-right: 4px; user-select: none; }
+.toggle::before { content: "▶ "; }
+.open > .toggle::before { content: "▼ "; }
 
-/* 折りたたみアイコン */
-.toggle {
-  cursor: pointer;
-  margin-right: 4px;
-  user-select: none;
-}
-
-.toggle::before {
-  content: "▶ ";
-}
-
-.open > .toggle::before {
-  content: "▼ ";
-}
-
-/* 現在ページ */
 .current-page {
   font-weight: bold;
   color: #d63384;
 }
 
-/* 本文（カード風） */
+/* ------------------------------
+   本文レイアウト
+------------------------------ */
 #content {
   margin-left: 280px;
   padding: 30px;
 }
 
+/* 本文は背景なし（見出しカードを目立たせる） */
 #content > * {
-  background: #fff;
-  padding: 25px 30px;
+  background: transparent !important;
+  padding: 0 !important;
+  margin-bottom: 24px;
+  box-shadow: none !important;
+}
+
+/* ------------------------------
+   見出し（GitHub Docs 風＋カード化）
+------------------------------ */
+h1, h2, h3, h4, h5 {
+  background: #ffffff !important;
+  padding: 16px 20px !important;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  margin-top: 32px;
   margin-bottom: 20px;
+  color: #24292f !important;
+}
+
+/* h1：左ライン */
+h1 {
+  font-size: 28px;
+  font-weight: 600;
+  border-left: 4px solid #0969da;
+  padding-left: 16px !important;
+}
+
+/* h2：下線 */
+h2 {
+  font-size: 22px;
+  font-weight: 600;
+  border-bottom: 2px solid #4b535a !important;
+  padding-bottom: 8px !important;
+}
+
+/* h3〜h5 */
+h3 { font-size: 20px; font-weight: 600; }
+h4 { font-size: 16px; font-weight: 600; }
+h5 { font-size: 14px; font-weight: 600; color: #57606a !important; }
+
+/* ------------------------------
+   GitHub Docs 風：コード
+------------------------------ */
+pre, code {
+  font-family: Consolas, "Courier New", monospace;
+}
+
+pre {
+  background: #f6f8fa !important;
+  padding: 12px 16px;
+  border-radius: 6px;
+  overflow-x: auto;
+  border: 1px solid #d0d7de;
+}
+
+code {
+  background: #f6f8fa !important;
+  padding: 2px 4px;
+  border-radius: 4px;
+  border: 1px solid #d0d7de;
+}
+
+/* ------------------------------
+   GitHub Docs 風：テーブル
+------------------------------ */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+}
+
+table th, table td {
+  border: 1px solid #d0d7de;
+  padding: 8px 12px;
+  background: transparent !important;
+}
+
+table th {
+  font-weight: 600;
+}
+
+/* ------------------------------
+   GitHub Docs 風：引用
+------------------------------ */
+blockquote {
+  border-left: 4px solid #d0d7de;
+  padding: 8px 16px;
+  color: #57606a;
+  background: #f6f8fa !important;
+  border-radius: 4px;
+}
+
+/* ------------------------------
+   GitHub Docs 風：リンク
+------------------------------ */
+a {
+  color: #0969da;
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ------------------------------
+   GitHub Docs 風：水平線
+------------------------------ */
+hr {
+  border: none;
+  border-top: 1px solid #d0d7de;
+  margin: 32px 0;
 }
 
 /* ------------------------------
@@ -121,29 +212,131 @@ body {
 }
 
 /* ------------------------------
-   ダークモード
+   ダークモード（html.dark）
 ------------------------------ */
-body.dark {
+html.dark body {
   background: #1e1e1e;
   color: #ddd;
 }
 
-body.dark #sidebar {
+html.dark #sidebar {
   background: #2b2b2b;
   border-right: 1px solid #444;
 }
 
-body.dark #sidebar-header {
+html.dark #sidebar-header {
   background: #333;
   border-bottom: 1px solid #444;
 }
 
-body.dark #content > * {
-  background: #2b2b2b;
-  color: #ddd;
+/* 見出しカード（ダーク） */
+html.dark h1, 
+html.dark h2, 
+html.dark h3, 
+html.dark h4, 
+html.dark h5 {
+  background: #2b2b2b !important;
+  color: #e6edf3 !important;
   box-shadow: none;
 }
 
-body.dark a {
-  color: #9cf;
+html.dark h1 { border-left-color: #58a6ff; }
+html.dark h2 { border-bottom-color: #8b949e !important; }
+
+/* コード */
+html.dark pre,
+html.dark code {
+  background: #161b22 !important;
+  border-color: #30363d;
 }
+
+/* テーブル */
+html.dark table th,
+html.dark table td {
+  border-color: #30363d;
+}
+
+/* 引用 */
+html.dark blockquote {
+  border-left-color: #30363d;
+  color: #8b949e;
+  background: #161b22 !important;
+}
+
+/* リンク */
+html.dark a {
+  color: #58a6ff;
+}
+
+/* 水平線 */
+html.dark hr {
+  border-top-color: #30363d;
+}
+
+/* ------------------------------
+   本文の左右余白
+------------------------------ */
+#content p,
+#content ul,
+#content ol,
+#content pre,
+#content table,
+#content blockquote {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+#content ul,
+#content ol {
+  margin-left: 20px;
+}
+
+/* ------------------------------
+   Pandoc シンタックスハイライト
+------------------------------ */
+code span.co { color: #6a737d !important; }
+code span.kw,
+code span.fu,
+code span.op { color: #005cc5 !important; }
+code span.st,
+code span.vs { color: #032f62 !important; }
+code span.dv { color: #005cc5 !important; }
+code span.dt { color: #6f42c1 !important; }
+code span.cn { color: #e36209 !important; }
+code span.va { color: #24292e !important; }
+code span.at { color: #6f42c1 !important; }
+code span.sc { color: #e36209 !important; }
+
+html.dark code span.co { color: #8b949e !important; }
+html.dark code span.kw,
+html.dark code span.fu,
+html.dark code span.op { color: #ff7b72 !important; }
+html.dark code span.st,
+html.dark code span.vs { color: #a5d6ff !important; }
+html.dark code span.dv { color: #79c0ff !important; }
+html.dark code span.dt { color: #d2a8ff !important; }
+html.dark code span.cn { color: #ffa657 !important; }
+html.dark code span.va { color: #c9d1d9 !important; }
+html.dark code span.at { color: #d2a8ff !important; }
+html.dark code span.sc { color: #ffa657 !important; }
+
+
+/* 背景を付けたい要素を透明化ルールより後で上書き */
+#content blockquote {
+  background: #f6f8fa !important;
+}
+
+#content code {
+  background: #f6f8fa !important;
+}
+
+#content pre {
+  background: #f6f8fa !important;
+}
+
+html.dark #content blockquote,
+html.dark #content code,
+html.dark #content pre {
+  background: #161b22 !important;
+}
+

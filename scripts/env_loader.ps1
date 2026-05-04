@@ -27,8 +27,7 @@ Get-Content -Path $Path -Encoding UTF8 | ForEach-Object {
         if ($parts.Count -eq 2) {
             $key = $parts[0].Trim()
             $value = $parts[1].Trim()
-            # 環境変数に設定（現在のプロセスのみ有効）
-            [System.Environment]::SetEnvironmentVariable($key, $value, "Process")
+            Write-Output "$key=$value"
         }
     }
 }
