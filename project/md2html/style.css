@@ -178,7 +178,6 @@ blockquote {
 
 /* ------------------------------
    admonition（NOTE / TIP / WARNING / IMPORTANT / CAUTION）
-   blockquote と完全一致
 ------------------------------ */
 #content .admonition {
   border-left: 4px solid;
@@ -190,20 +189,17 @@ blockquote {
   margin-bottom: 1em;
 }
 
-/* タイトル */
 #content .admonition-title p {
   margin: 0 0 0.4em 0;
   padding: 0 !important;
   font-weight: bold;
 }
 
-/* 本文 */
 #content .admonition > p {
   margin: 0 0 0.6em 0;
   padding: 0 !important;
 }
 
-/* 色 */
 .admonition.note { background: #f0f6ff !important; border-color: #0969da !important; }
 .admonition.tip { background: #e7f5e1 !important; border-color: #2da44e !important; }
 .admonition.important { background: #fbefff !important; border-color: #8250df !important; }
@@ -249,33 +245,22 @@ html.dark .admonition.important { background: #2b1f3a !important; border-color: 
 html.dark .admonition.warning { background: #3a2f1f !important; border-color: #9a6700 !important; }
 html.dark .admonition.caution { background: #3a1f1f !important; border-color: #cf222e !important; }
 
-/* ============================
-   ダークモード：見出し（h1〜h5）
-   ============================ */
+/* 見出しのダークモード */
 html.dark h1,
 html.dark h2,
 html.dark h3,
 html.dark h4,
 html.dark h5 {
-  background: #2b2b2b !important;   /* ← 明るい背景を上書き */
-  color: #e6edf3 !important;        /* ← GitHub Docs の暗色 */
-  border-color: #444 !important;    /* h1 の左線、h2 の下線も暗色に */
-  box-shadow: none !important;      /* 明るい影を消す */
+  background: #2b2b2b !important;
+  color: #e6edf3 !important;
+  border-color: #444 !important;
+  box-shadow: none !important;
 }
 
-/* h1 の左線 */
-html.dark h1 {
-  border-left-color: #58a6ff !important;
-}
+html.dark h1 { border-left-color: #58a6ff !important; }
+html.dark h2 { border-bottom-color: #8b949e !important; }
 
-/* h2 の下線 */
-html.dark h2 {
-  border-bottom-color: #8b949e !important;
-}
-
-/* ============================
-   ダークモード：NAV（サイドバー）
-   ============================ */
+/* NAV ダークモード */
 html.dark #sidebar {
   background: #2b2b2b !important;
   border-right: 1px solid #444 !important;
@@ -294,12 +279,9 @@ html.dark #nav li.current-page {
   color: #58a6ff !important;
 }
 
-
-/* ============================
-   ダークモード：コードブロック
-   ============================ */
+/* コードブロック（ダーク） */
 html.dark pre {
-  background: #161b22 !important;   /* GitHub Dark と同じ */
+  background: #161b22 !important;
   border-color: #30363d !important;
 }
 
@@ -308,9 +290,9 @@ html.dark code {
   border-color: #30363d !important;
 }
 
-/* ============================
+/* ------------------------------
    フッター（ZOOM スライダー）
-   ============================ */
+------------------------------ */
 #footerZoom {
   position: fixed;
   bottom: 10px;

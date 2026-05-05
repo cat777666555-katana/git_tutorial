@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-
 <html>
 <head>
   <script>
+    /* 初期ダークモード（チラつき防止） */
     (function() {
       const mode = localStorage.getItem("theme");
       if (mode === "dark") {
@@ -16,55 +16,52 @@
   <link rel="stylesheet" href="$css$">
   <script src="search.js"></script>
 </head>
-<footer id="footerZoom">
-  <label for="zoomSlider">Zoom:</label>
-  <input type="range" id="zoomSlider" min="50" max="200" value="100">
-</footer>
 
 <body>
 
-<div id="sidebar">
-  <div id="sidebar-header">
-    <input type="text" id="searchBox" placeholder="検索...">
-    <button id="toggleDark">🌙</button>
+<!-- ★★★ ここから全体 Zoom 対象 ★★★ -->
+<div id="zoom-wrapper">
+
+  <!-- サイドバー -->
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <input type="text" id="searchBox" placeholder="検索...">
+      <button id="toggleDark">🌙</button>
+    </div>
+
+    <div id="nav">
+      $include-before$
+    </div>
+
+    <div id="sidebar-resizer"></div>
   </div>
 
-  <div id="nav">
-$include-before$
+  <!-- 本文 -->
+  <div id="content">
+    $body$
   </div>
 
-  <div id="sidebar-resizer"></div>
-</div>
+  <!-- Zoom スライダー -->
+  <footer id="footerZoom">
+    <label for="zoomSlider">Zoom:</label>
+    <input type="range" id="zoomSlider" min="50" max="200" value="100">
+  </footer>
 
-<div id="content">
-$body$
 </div>
+<!-- ★★★ Zoom 対象ここまで ★★★ -->
+
 
 <script>
-/* ------------------------------
-   初期ダークモード（チラつき防止）
------------------------------- */
-(function() {
-  const mode = localStorage.getItem("theme");
-  if (mode === "dark") {
-    document.documentElement.classList.add("dark");
-  }
-})();
-
 /* ------------------------------
    ダークモード切り替え
 ------------------------------ */
 function setupDarkMode() {
   const btn = document.getElementById("toggleDark");
-
   btn.addEventListener("click", () => {
     document.documentElement.classList.toggle("dark");
-
-    if (document.documentElement.classList.contains("dark")) {
-      localStorage.setItem("theme", "dark");
-    } else {
-      localStorage.setItem("theme", "light");
-    }
+    localStorage.setItem("theme",
+      document.documentElement.classList.contains("dark") ? "dark" : "light"
+    );
   });
 }
 
@@ -75,11 +72,11 @@ function setupSidebarResize() {
   const sidebar = document.getElementById("sidebar");
   const resizer = document.getElementById("sidebar-resizer");
 
-  // 初期復元
   const savedWidth = localStorage.getItem("sidebarWidth");
   if (savedWidth) {
     sidebar.style.width = savedWidth + "px";
-    document.getElementById("content").style.marginLeft = (parseInt(savedWidth) + 20) + "px";
+    document.getElementById("content").style.marginLeft =
+      (parseInt(savedWidth) + 20) + "px";
   }
 
   let dragging = false;
@@ -92,7 +89,8 @@ function setupSidebarResize() {
 
     const newWidth = Math.max(200, Math.min(500, e.clientX));
     sidebar.style.width = newWidth + "px";
-    document.getElementById("content").style.marginLeft = (newWidth + 20) + "px";
+    document.getElementById("content").style.marginLeft =
+      (newWidth + 20) + "px";
 
     localStorage.setItem("sidebarWidth", newWidth);
   });
@@ -162,7 +160,7 @@ function highlightCurrentPage() {
 }
 
 /* ------------------------------
-   ズームスライド
+   全体 Zoom（NAV も含む）
 ------------------------------ */
 function setupZoomSlider() {
   const slider = document.getElementById("zoomSlider");
@@ -171,7 +169,7 @@ function setupZoomSlider() {
   const savedZoom = localStorage.getItem("zoomLevel");
   if (savedZoom) {
     document.body.style.zoom = savedZoom + "%";
-    slider.value = savedZoom;
+  slider.value = savedZoom;
   }
 
   slider.addEventListener("input", () => {
@@ -197,4 +195,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 </body>
 </html>
-
