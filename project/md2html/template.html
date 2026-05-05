@@ -114,6 +114,17 @@ function setZoom(level) {
 /* ------------------------------
    折りたたみツリー
 ------------------------------ */
+function saveNavState() {
+  const state = {};
+
+  document.querySelectorAll("#nav li.folder").forEach(li => {
+    const path = li.querySelector("a")?.getAttribute("href") || li.textContent.trim();
+    state[path] = li.classList.contains("open");
+  });
+
+  localStorage.setItem("navState", JSON.stringify(state));
+}
+
 function setupTree() {
   document.querySelectorAll("#nav li").forEach(li => {
     const sub = li.querySelector("ul");
@@ -129,11 +140,25 @@ function setupTree() {
       toggle.addEventListener("click", () => {
         li.classList.toggle("open");
         sub.style.display = li.classList.contains("open") ? "block" : "none";
+        saveNavState();
       });
 
       sub.style.display = "none";
     } else if (link) {
       li.classList.add("file");
+    }
+  });
+}
+function restoreNavState() {
+  const state = JSON.parse(localStorage.getItem("navState") || "{}");
+
+  document.querySelectorAll("#nav li.folder").forEach(li => {
+    const path = li.querySelector("a")?.getAttribute("href") || li.textContent.trim();
+
+    if (state[path]) {
+      li.classList.add("open");
+      const sub = li.querySelector("ul");
+      if (sub) sub.style.display = "block";
     }
   });
 }
@@ -184,6 +209,7 @@ function setupZoomSlider() {
 ------------------------------ */
 document.addEventListener("DOMContentLoaded", () => {
   setupTree();
+  restoreNavState();
   highlightCurrentPage();
   setupSearch();
   setupSidebarResize();
