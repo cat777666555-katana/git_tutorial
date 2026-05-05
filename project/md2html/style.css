@@ -151,6 +151,15 @@ code {
   border: 1px solid #d0d7de;
 }
 
+/* console の行頭インデントを揃える */
+pre.console code {
+  display: block;
+  padding-left: 4px;
+  line-height: 1.6;
+  white-space: pre;
+}
+
+
 /* ------------------------------
    GitHub Docs 風：テーブル
 ------------------------------ */
@@ -341,5 +350,44 @@ html.dark #content blockquote,
 html.dark #content code,
 html.dark #content pre {
   background: #161b22 !important;
+}
+
+#footerZoom {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+  background: #f6f8fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #d0d7de;
+  font-size: 14px;
+  z-index: 999;
+}
+
+html.dark #footerZoom {
+  background: #161b22;
+  border-color: #30363d;
+  color: #c9d1d9;
+}
+
+/* ============================
+   コードブロック全般の改善
+   - 1行目のインデント揃え
+   - 行間を広げる
+   - 等幅フォントの統一
+   - pre 内の code を block 化
+============================ */
+
+pre code {
+  display: block;          /* 1行目のインデントずれ防止 */
+  padding-left: 4px;       /* 行頭の揃え */
+  white-space: pre;        /* 改行・空白をそのまま表示 */
+  line-height: 1.6;        /* 行間を広げる */
+  font-family: Consolas, "Courier New", monospace;
+}
+
+/* pre 自体の行間も統一 */
+pre {
+  line-height: 1.6;
 }
 

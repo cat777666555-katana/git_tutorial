@@ -16,6 +16,10 @@
   <link rel="stylesheet" href="$css$">
   <script src="search.js"></script>
 </head>
+<footer id="footerZoom">
+  <label for="zoomSlider">Zoom:</label>
+  <input type="range" id="zoomSlider" min="50" max="200" value="100">
+</footer>
 
 <body>
 
@@ -158,6 +162,26 @@ function highlightCurrentPage() {
 }
 
 /* ------------------------------
+   ズームスライド
+------------------------------ */
+function setupZoomSlider() {
+  const slider = document.getElementById("zoomSlider");
+
+  // 初期復元
+  const savedZoom = localStorage.getItem("zoomLevel");
+  if (savedZoom) {
+    document.body.style.zoom = savedZoom + "%";
+    slider.value = savedZoom;
+  }
+
+  slider.addEventListener("input", () => {
+    const level = slider.value;
+    document.body.style.zoom = level + "%";
+    localStorage.setItem("zoomLevel", level);
+  });
+}
+
+/* ------------------------------
    初期化
 ------------------------------ */
 document.addEventListener("DOMContentLoaded", () => {
@@ -167,6 +191,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSidebarResize();
   setupDarkMode();
   setupZoom();
+  setupZoomSlider();
 });
 </script>
 
