@@ -97,23 +97,60 @@ h1, h2, h3, h4, h5 {
   color: #24292f !important;
 }
 
+/* ============================
+   h1〜h5：左側ボーダーで階層を区別（強調版）
+   ============================ */
+
+/* h1：最上位 → 極太・濃い青・余白広め */
 h1 {
-  font-size: 28px;
-  font-weight: 600;
-  border-left: 4px solid #0969da;
-  padding-left: 16px !important;
+  border-left: 10px solid #0550ae !important;  /* ← 濃い青 + 極太 */
+  padding-left: 20px !important;
+  background: #ffffff !important;
+  border-radius: 6px;
+  font-size: 30px;
+  font-weight: 700;
 }
 
+/* h2：太め・標準青・余白少し狭め */
 h2 {
-  font-size: 22px;
-  font-weight: 600;
-  border-bottom: 2px solid #4b535a !important;
-  padding-bottom: 8px !important;
+  border-left: 6px solid #0969da !important;
+  padding-left: 18px !important;
+  background: #ffffff !important;
+  border-radius: 6px;
+  font-size: 24px;
+  font-weight: 650;
 }
 
-h3 { font-size: 20px; font-weight: 600; }
-h4 { font-size: 16px; font-weight: 600; }
-h5 { font-size: 14px; font-weight: 600; color: #57606a !important; }
+/* h3：中くらい・少し薄い青・余白さらに狭め */
+h3 {
+  border-left: 4px solid #1f6feb !important;  /* ← 少し明るい青 */
+  padding-left: 16px !important;
+  background: #ffffff !important;
+  border-radius: 6px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* h4：細い青線（軽い階層） */
+h4 {
+  border-left: 3px solid #58a6ff !important;
+  padding-left: 14px !important;
+  background: #ffffff !important;
+  border-radius: 6px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* h5：最も軽い階層 → とても細い青線 */
+h5 {
+  border-left: 2px solid #a5d6ff !important;
+  padding-left: 12px !important;
+  background: #ffffff !important;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #57606a !important;
+}
 
 /* ------------------------------
    GitHub Docs 風：コード
@@ -253,12 +290,13 @@ html.dark h4,
 html.dark h5 {
   background: #2b2b2b !important;
   color: #e6edf3 !important;
-  border-color: #444 !important;
-  box-shadow: none !important;
 }
 
 html.dark h1 { border-left-color: #58a6ff !important; }
-html.dark h2 { border-bottom-color: #8b949e !important; }
+html.dark h2 { border-left-color: #58a6ff !important; }
+html.dark h3 { border-left-color: #79c0ff !important; }
+html.dark h4 { border-left-color: #8b949e !important; }
+html.dark h5 { border-left-color: #8b949e !important; color: #c9d1d9 !important; }
 
 /* NAV ダークモード */
 html.dark #sidebar {
