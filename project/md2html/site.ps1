@@ -111,6 +111,7 @@ foreach ($file in $files) {
         --include-before-body="$OutDir\nav.html" `
         --css="style.css" `
         --syntax-highlighting=pygments `
+        --lua-filter="admonition.lua" `
         --lua-filter="plantuml.lua" `
         -o $outPath `
         $file.FullName

@@ -84,19 +84,8 @@ body {
   padding: 30px;
 }
 
-/* 見出しカード以外の直下要素を透明化しない */
-#content > p,
-#content > ul,
-#content > ol {
-  background: transparent !important;
-  padding: 0 !important;
-  margin-bottom: 24px;
-  box-shadow: none !important;
-}
-
-
 /* ------------------------------
-   見出し（GitHub Docs 風＋カード化）
+   見出し（GitHub Docs 風）
 ------------------------------ */
 h1, h2, h3, h4, h5 {
   background: #ffffff !important;
@@ -108,7 +97,6 @@ h1, h2, h3, h4, h5 {
   color: #24292f !important;
 }
 
-/* h1：左ライン */
 h1 {
   font-size: 28px;
   font-weight: 600;
@@ -116,7 +104,6 @@ h1 {
   padding-left: 16px !important;
 }
 
-/* h2：下線 */
 h2 {
   font-size: 22px;
   font-weight: 600;
@@ -124,7 +111,6 @@ h2 {
   padding-bottom: 8px !important;
 }
 
-/* h3〜h5 */
 h3 { font-size: 20px; font-weight: 600; }
 h4 { font-size: 16px; font-weight: 600; }
 h5 { font-size: 14px; font-weight: 600; color: #57606a !important; }
@@ -142,6 +128,14 @@ pre {
   border-radius: 6px;
   overflow-x: auto;
   border: 1px solid #d0d7de;
+  line-height: 1.6;
+}
+
+pre code {
+  display: block;
+  padding-left: 4px;
+  white-space: pre;
+  line-height: 1.6;
 }
 
 code {
@@ -150,15 +144,6 @@ code {
   border-radius: 4px;
   border: 1px solid #d0d7de;
 }
-
-/* console の行頭インデントを揃える */
-pre.console code {
-  display: block;
-  padding-left: 4px;
-  line-height: 1.6;
-  white-space: pre;
-}
-
 
 /* ------------------------------
    GitHub Docs 風：テーブル
@@ -180,15 +165,50 @@ table th {
 }
 
 /* ------------------------------
-   GitHub Docs 風：引用
+   GitHub Docs 風：引用（blockquote）
 ------------------------------ */
 blockquote {
   border-left: 4px solid #d0d7de;
   padding: 8px 16px;
-  color: #57606a;
   background: #f6f8fa !important;
   border-radius: 4px;
+  margin-left: 20px;
+  margin-right: 20px;
 }
+
+/* ------------------------------
+   admonition（NOTE / TIP / WARNING / IMPORTANT / CAUTION）
+   blockquote と完全一致
+------------------------------ */
+#content .admonition {
+  border-left: 4px solid;
+  padding: 8px 16px !important;
+  border-radius: 4px;
+  margin-left: 20px !important;
+  margin-right: 20px !important;
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+/* タイトル */
+#content .admonition-title p {
+  margin: 0 0 0.4em 0;
+  padding: 0 !important;
+  font-weight: bold;
+}
+
+/* 本文 */
+#content .admonition > p {
+  margin: 0 0 0.6em 0;
+  padding: 0 !important;
+}
+
+/* 色 */
+.admonition.note { background: #f0f6ff !important; border-color: #0969da !important; }
+.admonition.tip { background: #e7f5e1 !important; border-color: #2da44e !important; }
+.admonition.important { background: #fbefff !important; border-color: #8250df !important; }
+.admonition.warning { background: #fff8c5 !important; border-color: #9a6700 !important; }
+.admonition.caution { background: #ffebe9 !important; border-color: #cf222e !important; }
 
 /* ------------------------------
    GitHub Docs 風：リンク
@@ -211,96 +231,102 @@ hr {
 }
 
 /* ------------------------------
-   サイドバー幅変更
------------------------------- */
-#sidebar-resizer {
-  width: 6px;
-  cursor: ew-resize;
-  background: #ccc;
-  position: absolute;
-  top: 0;
-  right: 0;
-  height: 100%;
-}
-
-/* ------------------------------
-   ダークモード（html.dark）
+   ダークモード
 ------------------------------ */
 html.dark body {
   background: #1e1e1e;
   color: #ddd;
 }
 
+html.dark blockquote {
+  background: #161b22 !important;
+  border-left-color: #30363d;
+}
+
+html.dark .admonition.note { background: #1f2d3a !important; border-color: #58a6ff !important; }
+html.dark .admonition.tip { background: #1e3624 !important; border-color: #2da44e !important; }
+html.dark .admonition.important { background: #2b1f3a !important; border-color: #8250df !important; }
+html.dark .admonition.warning { background: #3a2f1f !important; border-color: #9a6700 !important; }
+html.dark .admonition.caution { background: #3a1f1f !important; border-color: #cf222e !important; }
+
+/* ============================
+   ダークモード：見出し（h1〜h5）
+   ============================ */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5 {
+  background: #2b2b2b !important;   /* ← 明るい背景を上書き */
+  color: #e6edf3 !important;        /* ← GitHub Docs の暗色 */
+  border-color: #444 !important;    /* h1 の左線、h2 の下線も暗色に */
+  box-shadow: none !important;      /* 明るい影を消す */
+}
+
+/* h1 の左線 */
+html.dark h1 {
+  border-left-color: #58a6ff !important;
+}
+
+/* h2 の下線 */
+html.dark h2 {
+  border-bottom-color: #8b949e !important;
+}
+
+/* ============================
+   ダークモード：NAV（サイドバー）
+   ============================ */
 html.dark #sidebar {
-  background: #2b2b2b;
-  border-right: 1px solid #444;
+  background: #2b2b2b !important;
+  border-right: 1px solid #444 !important;
 }
 
 html.dark #sidebar-header {
-  background: #333;
-  border-bottom: 1px solid #444;
+  background: #333 !important;
+  border-bottom: 1px solid #444 !important;
 }
 
-/* 見出しカード（ダーク） */
-html.dark h1, 
-html.dark h2, 
-html.dark h3, 
-html.dark h4, 
-html.dark h5 {
-  background: #2b2b2b !important;
+html.dark #nav li {
   color: #e6edf3 !important;
-  box-shadow: none;
 }
 
-html.dark h1 { border-left-color: #58a6ff; }
-html.dark h2 { border-bottom-color: #8b949e !important; }
+html.dark #nav li.current-page {
+  color: #58a6ff !important;
+}
 
-/* コード */
-html.dark pre,
+
+/* ============================
+   ダークモード：コードブロック
+   ============================ */
+html.dark pre {
+  background: #161b22 !important;   /* GitHub Dark と同じ */
+  border-color: #30363d !important;
+}
+
 html.dark code {
   background: #161b22 !important;
+  border-color: #30363d !important;
+}
+
+/* ============================
+   フッター（ZOOM スライダー）
+   ============================ */
+#footerZoom {
+  position: fixed;
+  bottom: 10px;
+  right: 20px;
+  background: #f6f8fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #d0d7de;
+  font-size: 14px;
+  z-index: 999;
+}
+
+html.dark #footerZoom {
+  background: #161b22;
   border-color: #30363d;
-}
-
-/* テーブル */
-html.dark table th,
-html.dark table td {
-  border-color: #30363d;
-}
-
-/* 引用 */
-html.dark blockquote {
-  border-left-color: #30363d;
-  color: #8b949e;
-  background: #161b22 !important;
-}
-
-/* リンク */
-html.dark a {
-  color: #58a6ff;
-}
-
-/* 水平線 */
-html.dark hr {
-  border-top-color: #30363d;
-}
-
-/* ------------------------------
-   本文の左右余白
------------------------------- */
-#content p,
-#content ul,
-#content ol,
-#content pre,
-#content table,
-#content blockquote {
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-#content ul,
-#content ol {
-  margin-left: 20px;
+  color: #c9d1d9;
 }
 
 /* ------------------------------
@@ -333,61 +359,4 @@ html.dark code span.at { color: #d2a8ff !important; }
 html.dark code span.sc { color: #ffa657 !important; }
 
 
-/* 背景を付けたい要素を透明化ルールより後で上書き */
-#content blockquote {
-  background: #f6f8fa !important;
-}
-
-#content code {
-  background: #f6f8fa !important;
-}
-
-#content pre {
-  background: #f6f8fa !important;
-}
-
-html.dark #content blockquote,
-html.dark #content code,
-html.dark #content pre {
-  background: #161b22 !important;
-}
-
-#footerZoom {
-  position: fixed;
-  bottom: 10px;
-  right: 20px;
-  background: #f6f8fa;
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid #d0d7de;
-  font-size: 14px;
-  z-index: 999;
-}
-
-html.dark #footerZoom {
-  background: #161b22;
-  border-color: #30363d;
-  color: #c9d1d9;
-}
-
-/* ============================
-   コードブロック全般の改善
-   - 1行目のインデント揃え
-   - 行間を広げる
-   - 等幅フォントの統一
-   - pre 内の code を block 化
-============================ */
-
-pre code {
-  display: block;          /* 1行目のインデントずれ防止 */
-  padding-left: 4px;       /* 行頭の揃え */
-  white-space: pre;        /* 改行・空白をそのまま表示 */
-  line-height: 1.6;        /* 行間を広げる */
-  font-family: Consolas, "Courier New", monospace;
-}
-
-/* pre 自体の行間も統一 */
-pre {
-  line-height: 1.6;
-}
 
