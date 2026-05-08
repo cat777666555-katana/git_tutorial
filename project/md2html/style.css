@@ -202,6 +202,62 @@ table th {
 }
 
 /* ------------------------------
+   GitHub Docs 風：テーブル（ライト + ダーク対応）
+------------------------------ */
+
+/* テーブル全体 */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 20px 0;
+  border: 1px solid #d0d7de;
+  border-radius: 6px;
+  overflow: hidden; /* ← 角丸を有効にする */
+}
+
+/* ヘッダー */
+table th {
+  background: #f6f8fa !important;  /* GitHub Docs の薄いグレー */
+  font-weight: 600;
+  padding: 10px 12px;
+  border-bottom: 1px solid #d0d7de;
+  color: #24292f;
+}
+
+/* 本文セル */
+table td {
+  background: #ffffff !important;
+  padding: 10px 12px;
+  border-bottom: 1px solid #d0d7de;
+  color: #24292f;
+}
+
+/* 最終行の下線を消す */
+table tr:last-child td {
+  border-bottom: none;
+}
+
+/* ------------------------------
+   ダークモード：テーブル
+------------------------------ */
+html.dark table {
+  border-color: #30363d;
+}
+
+html.dark table th {
+  background: #161b22 !important;  /* GitHub ダークのヘッダー色 */
+  color: #e6edf3;
+  border-bottom-color: #30363d;
+}
+
+html.dark table td {
+  background: #0d1117 !important;  /* GitHub ダークの本文色 */
+  color: #c9d1d9;
+  border-bottom-color: #30363d;
+}
+
+
+/* ------------------------------
    GitHub Docs 風：引用（blockquote）
 ------------------------------ */
 blockquote {
