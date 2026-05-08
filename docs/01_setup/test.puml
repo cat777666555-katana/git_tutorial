@@ -1,0 +1,17 @@
+@startuml test
+title テスト用クラス図
+skinparam dpi 150
+
+' クラスAの定義
+class A {
+  +string field1
+  +void method1()
+}
+note right of A {
+  これが基本のクラス
+}
+
+' クラス間の関係
+A <|-- B : 継承
+A <|-- C : 継承
+@enduml
