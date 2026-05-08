@@ -93,7 +93,11 @@ IMPORT_RE = re.compile(r'@import\s+"([^"]+)"')
 def expand_imports(md_path: Path, docs_root: Path, visited=None):
     """
     MPE の @import を再帰展開する。
-    .puml は ```plantuml に自動ラップする。
+    - "*.md" の glob 展開
+    - .puml → ```plantuml
+    - .mermaid → ```mermaid
+    - .json → ```json
+    - .yaml/.yml → ```yaml
     """
     if visited is None:
         visited = set()
@@ -107,25 +111,62 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
 
     text = md_path.read_text(encoding="utf-8")
 
+    def wrap_codeblock(ext: str, code: str):
+        return f"\n```{ext}\n{code}\n```\n"
+
     def replace(match):
         rel = match.group(1)
-        target = (md_path.parent / rel).resolve()
+        pattern = (md_path.parent / rel).resolve()
 
+        # --- ① glob 展開 ---
+        if "*" in rel or "?" in rel or "[" in rel:
+            matched = list(md_path.parent.glob(rel))
+            if not matched:
+                return f"\n<!-- WARNING: glob not matched: {rel} -->\n"
+
+            result = []
+            for target in matched:
+                result.append(process_single_import(target))
+            return "\n".join(result)
+
+        # --- ② 通常の単一ファイル import ---
+        target = pattern
+        return process_single_import(target)
+
+    def process_single_import(target: Path):
         if not target.exists():
-            return f"\n<!-- ERROR: not found: {rel} -->\n"
+            return f"\n<!-- ERROR: not found: {target} -->\n"
 
-        # .puml → plantuml コードブロック
-        if target.suffix.lower() == ".puml":
+        suffix = target.suffix.lower()
+
+        # --- .puml → plantuml ---
+        if suffix == ".puml":
             code = target.read_text(encoding="utf-8")
-            return f"\n```plantuml\n{code}\n```\n"
+            return wrap_codeblock("plantuml", code)
 
-        # .md → 再帰展開
-        if target.suffix.lower() == ".md":
+        # --- .mermaid → mermaid ---
+        if suffix == ".mermaid":
+            code = target.read_text(encoding="utf-8")
+            return wrap_codeblock("mermaid", code)
+
+        # --- .json → json ---
+        if suffix == ".json":
+            code = target.read_text(encoding="utf-8")
+            return wrap_codeblock("json", code)
+
+        # --- .yaml / .yml → yaml ---
+        if suffix in [".yaml", ".yml"]:
+            code = target.read_text(encoding="utf-8")
+            return wrap_codeblock("yaml", code)
+
+        # --- .md → 再帰展開 ---
+        if suffix == ".md":
             return expand_imports(target, docs_root, visited)
 
-        # その他 → そのまま挿入
+        # --- その他はそのまま挿入 ---
         return target.read_text(encoding="utf-8")
 
+    # @import をすべて置換
     expanded = IMPORT_RE.sub(replace, text)
     return expanded
 
