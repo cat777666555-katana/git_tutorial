@@ -20,6 +20,7 @@ if "%DOCS_PATH%"=="" (
     exit /b
 )
 
-powershell -ExecutionPolicy Bypass -File "%~dp0site.ps1" "%DOCS_PATH%"
+rem powershell -ExecutionPolicy Bypass -File "%~dp0site.ps1" "%DOCS_PATH%"
+python site.py "%DOCS_PATH%"
 move plantuml-*.png .\site\
 pause
