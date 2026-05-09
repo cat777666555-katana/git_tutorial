@@ -127,32 +127,61 @@ document.addEventListener("DOMContentLoaded", () => {
     viewerImg.style.cursor = "zoom-out";
   });
 
-  // ------------------------------
-  // キーボード操作
-  // ------------------------------
-  document.addEventListener("keydown", (e) => {
-    if (viewer.classList.contains("hidden")) return;
+// ------------------------------
+// キーボード操作（ズーム & パン）
+// ------------------------------
+document.addEventListener("keydown", (e) => {
+  if (viewer.classList.contains("hidden")) return;
 
-    if (e.key === "+") {
-      scale = Math.min(scale + 0.2, 10);
-      updateTransform();
-    }
+  // Lightbox が開いている時はページスクロールを止める
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(e.key)) {
+    e.preventDefault();
+  }
 
-    if (e.key === "-") {
-      scale = Math.max(scale - 0.2, 0.1);
-      updateTransform();
-    }
+  // ズーム
+  if (e.key === "+") {
+    scale = Math.min(scale + 0.2, 10);
+    updateTransform();
+  }
 
-    if (e.key === "0") {
-      scale = 1;
-      imgX = 0;
-      imgY = 0;
-      updateTransform();
-    }
+  if (e.key === "-") {
+    scale = Math.max(scale - 0.2, 0.1);
+    updateTransform();
+  }
 
-    if (e.key === "Escape") {
-      viewer.classList.add("hidden");
-    }
-  });
+  if (e.key === "0") {
+    scale = 1;
+    imgX = 0;
+    imgY = 0;
+    updateTransform();
+  }
 
+  // パン（矢印キー）
+  const move = 20;  // 移動量（必要なら調整）
+
+  if (e.key === "ArrowLeft") {
+    imgX += move;
+    updateTransform();
+  }
+
+  if (e.key === "ArrowRight") {
+    imgX -= move;
+    updateTransform();
+  }
+
+  if (e.key === "ArrowUp") {
+    imgY += move;
+    updateTransform();
+  }
+
+  if (e.key === "ArrowDown") {
+    imgY -= move;
+    updateTransform();
+  }
+
+  // 閉じる
+  if (e.key === "Escape") {
+    viewer.classList.add("hidden");
+  }
+});
 });
