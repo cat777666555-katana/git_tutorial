@@ -33,72 +33,95 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // すべての画像にクリックイベントを付与
+  // ------------------------------
+  // ズーム・パンの状態管理
+  // ------------------------------
+  let scale = 1;
+  let imgX = 0;
+  let imgY = 0;
+
+  function updateTransform() {
+    viewerImg.style.transform = `translate(${imgX}px, ${imgY}px) scale(${scale})`;
+  }
+
+  // ------------------------------
+  // 画像クリックで Lightbox 表示
+  // ------------------------------
   document.querySelectorAll("#content img").forEach(img => {
     img.style.cursor = "zoom-in";
     img.addEventListener("click", () => {
       viewerImg.src = img.src;
+      scale = 1;
+      imgX = 0;
+      imgY = 0;
+      updateTransform();
       viewer.classList.remove("hidden");
     });
   });
 
+  // ------------------------------
   // 閉じる
+  // ------------------------------
   closeBtn.addEventListener("click", () => {
     viewer.classList.add("hidden");
-    viewerImg.style.transform = "scale(1)";
   });
 
-  // 背景クリックでも閉じる
   viewer.addEventListener("click", (e) => {
     if (e.target === viewer) {
       viewer.classList.add("hidden");
-      viewerImg.style.transform = "scale(1)";
     }
   });
 
-  // ホイールズーム
-  let scale = 1;
+  // ------------------------------
+  // ホイールズーム（Lightbox が開いている時だけ）
+  // ------------------------------
   viewerImg.addEventListener("wheel", (e) => {
+    if (viewer.classList.contains("hidden")) {
+      // Lightbox が閉じている → ページの zoom に wheel を渡す
+      return;
+    }
+  
+    // Lightbox が開いている → wheel を Lightbox が奪う
     e.preventDefault();
     scale += e.deltaY * -0.001;
     scale = Math.min(Math.max(0.1, scale), 10);
-    viewerImg.style.transform = `scale(${scale})`;
+    updateTransform();
   });
 
+  // ------------------------------
+  // ズームボタン
+  // ------------------------------
   document.getElementById("zoom-in").addEventListener("click", () => {
-    scale = Math.min(scale + 0.2, 5);
-    viewerImg.style.transform = `scale(${scale})`;
+    scale = Math.min(scale + 0.2, 10);
+    updateTransform();
   });
 
   document.getElementById("zoom-out").addEventListener("click", () => {
-    scale = Math.max(scale - 0.2, 0.2);
-    viewerImg.style.transform = `scale(${scale})`;
+    scale = Math.max(scale - 0.2, 0.1);
+    updateTransform();
   });
 
-
   // ------------------------------
-  // ドラッグで画像を移動（パン）
+  // ドラッグでパン
   // ------------------------------
   let isDragging = false;
   let startX = 0;
   let startY = 0;
-  let imgX = 0;
-  let imgY = 0;
-  
+
   viewerImg.addEventListener("mousedown", (e) => {
     isDragging = true;
     startX = e.clientX - imgX;
     startY = e.clientY - imgY;
     viewerImg.style.cursor = "grabbing";
   });
-  
+
   document.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
     imgX = e.clientX - startX;
     imgY = e.clientY - startY;
-    viewerImg.style.transform = `translate(${imgX}px, ${imgY}px) scale(${scale})`;
+    updateTransform();
   });
-  
+
   document.addEventListener("mouseup", () => {
     isDragging = false;
     viewerImg.style.cursor = "zoom-out";
@@ -109,32 +132,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // ------------------------------
   document.addEventListener("keydown", (e) => {
     if (viewer.classList.contains("hidden")) return;
-  
+
     if (e.key === "+") {
-      scale = Math.min(scale + 0.2, 5);
-      viewerImg.style.transform = `translate(${imgX}px, ${imgY}px) scale(${scale})`;
+      scale = Math.min(scale + 0.2, 10);
+      updateTransform();
     }
-  
+
     if (e.key === "-") {
-      scale = Math.max(scale - 0.2, 0.2);
-      viewerImg.style.transform = `translate(${imgX}px, ${imgY}px) scale(${scale})`;
+      scale = Math.max(scale - 0.2, 0.1);
+      updateTransform();
     }
-  
+
     if (e.key === "0") {
       scale = 1;
       imgX = 0;
       imgY = 0;
-      viewerImg.style.transform = `scale(1)`;
+      updateTransform();
     }
-  
+
     if (e.key === "Escape") {
       viewer.classList.add("hidden");
-      scale = 1;
-      imgX = 0;
-      imgY = 0;
-      viewerImg.style.transform = "scale(1)";
     }
   });
 
 });
-
