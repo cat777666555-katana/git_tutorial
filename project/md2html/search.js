@@ -62,13 +62,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   closeBtn.addEventListener("click", closeViewer);
 
-  // 背景クリックで閉じる
-  viewer.addEventListener("click", e => {
-    if (e.target.id === "image-viewer") {
-      closeViewer();
-    }
-  });
-
   // ホイールズーム
   viewerImg.addEventListener("wheel", e => {
     if (viewer.classList.contains("hidden")) return;
