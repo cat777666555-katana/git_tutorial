@@ -97,11 +97,16 @@ nav_html = build_nav_html(tree)
 
 
 # ----------------------------------------
-# 5. PlantUML SVG 生成（site/site 問題修正 & ファイル名安定化）
+# 5. PlantUML SVG 生成（md 名入り）
 # ----------------------------------------
-def generate_plantuml_svg(code: str, out_dir: Path) -> str:
+def generate_plantuml_svg(code: str, out_dir: Path, md_name: str) -> str:
     sha = hashlib.sha1(code.encode("utf-8")).hexdigest()
-    svg_name = f"plantuml-{sha}.svg"
+
+    # md ファイル名（拡張子なし）を安全に使う
+    base = Path(md_name).stem.replace(" ", "_")
+
+    # SVG ファイル名に md 名を含める
+    svg_name = f"plantuml-{base}-{sha}.svg"
     svg_path = out_dir / svg_name
 
     if svg_path.exists():
@@ -123,7 +128,6 @@ def generate_plantuml_svg(code: str, out_dir: Path) -> str:
         check=True,
     )
 
-    # PlantUML が生成した SVG を out_dir から探す（最新ファイル）
     svg_files = list(out_dir.glob("*.svg"))
     if not svg_files:
         raise RuntimeError("PlantUML が SVG を生成しませんでした")
@@ -137,27 +141,27 @@ def generate_plantuml_svg(code: str, out_dir: Path) -> str:
 
 
 # ----------------------------------------
-# 6. Markdown 内の ```plantuml を SVG に変換
+# 6. Markdown 内の ```plantuml を SVG に変換（md 名対応）
 # ----------------------------------------
 PLANTUML_BLOCK_RE = re.compile(
     r"```plantuml\s+([\s\S]*?)```",
     re.MULTILINE,
 )
 
-def replace_plantuml_blocks(md_text: str, out_dir: Path) -> str:
+def replace_plantuml_blocks(md_text: str, out_dir: Path, md_name: str) -> str:
     def repl(match):
         code = match.group(1).strip()
-        svg_name = generate_plantuml_svg(code, out_dir)
+        svg_name = generate_plantuml_svg(code, out_dir, md_name)
         return f'\n<img src="{svg_name}" alt="plantuml-diagram" />\n'
 
     return PLANTUML_BLOCK_RE.sub(repl, md_text)
 
 
 # ----------------------------------------
-# 7. GitHub Docs 形式の Admonition を HTML に変換
+# 7. Admonition 変換
 # ----------------------------------------
 ADMONITION_RE = re.compile(
-    r"^> \[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]\s*\n((?:> .*\n?)*)", re.MULTILINE
+    r"^>\[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]\s*\n((?:> .*\n?)*)", re.MULTILINE
 )
 
 def convert_admonitions(md_text: str) -> str:
@@ -181,7 +185,7 @@ def convert_admonitions(md_text: str) -> str:
 
 
 # ----------------------------------------
-# 8. @import 展開（glob + puml→SVG + mermaid/json/yaml + admonition）
+# 8. @import 展開（md 名伝播）
 # ----------------------------------------
 IMPORT_RE = re.compile(r'@import\s+"([^"]+)"')
 
@@ -190,6 +194,7 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
         visited = set()
 
     md_path = md_path.resolve()
+    md_name = md_path.name  # ★ md 名を取得
 
     if md_path in visited:
         return f"\n<!-- WARNING: circular import detected: {md_path} -->\n"
@@ -208,8 +213,11 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
 
         if suffix == ".puml":
             code = target.read_text(encoding="utf-8")
-            svg = generate_plantuml_svg(code, out_dir)
+            svg = generate_plantuml_svg(code, out_dir, md_name)
             return f'\n<img src="{svg}" alt="{target.name}" />\n'
+
+        if suffix == ".md":
+            return expand_imports(target, docs_root, visited)
 
         if suffix == ".mermaid":
             code = target.read_text(encoding="utf-8")
@@ -222,9 +230,6 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
         if suffix in [".yaml", ".yml"]:
             code = target.read_text(encoding="utf-8")
             return wrap_codeblock("yaml", code)
-
-        if suffix == ".md":
-            return expand_imports(target, docs_root, visited)
 
         return target.read_text(encoding="utf-8")
 
@@ -242,7 +247,7 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
 
     expanded = IMPORT_RE.sub(replace, text)
 
-    expanded = replace_plantuml_blocks(expanded, out_dir)
+    expanded = replace_plantuml_blocks(expanded, out_dir, md_name)
     expanded = convert_admonitions(expanded)
 
     return expanded
@@ -273,7 +278,7 @@ for file in files:
 
 
 # ----------------------------------------
-# 10. HTML 生成（@import → PlantUML → Admonition → Pandoc）
+# 10. HTML 生成
 # ----------------------------------------
 tmp_dir = out_dir / "_tmp"
 tmp_dir.mkdir(exist_ok=True)
