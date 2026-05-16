@@ -502,3 +502,11 @@ html.dark #image-zoom-controls button {
   color: #c9d1d9;
 }
 
+/* Mermaid 図の巨大化防止（決定版） */
+#content img[alt="mermaid-diagram"] {
+  width: 100% !important;
+  max-width: 200px;   /* ← 好きな最大幅に調整可能 */
+  height: auto !important;
+  display: block;
+  margin: 20px auto;  /* 中央寄せ */
+}

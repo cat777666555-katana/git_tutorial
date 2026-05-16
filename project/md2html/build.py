@@ -44,17 +44,10 @@ template = Path("./template.html")
 css_file = Path("./style.css")
 search_js = Path("./search.js")
 
-if not template.exists():
-    print("[ERROR] template.html が見つかりません", file=sys.stderr)
-    sys.exit(1)
-
-if not css_file.exists():
-    print("[ERROR] style.css が見つかりません", file=sys.stderr)
-    sys.exit(1)
-
-if not search_js.exists():
-    print("[ERROR] search.js が見つかりません", file=sys.stderr)
-    sys.exit(1)
+for f in [template, css_file, search_js]:
+    if not f.exists():
+        print(f"[ERROR] {f.name} が見つかりません", file=sys.stderr)
+        sys.exit(1)
 
 
 # ----------------------------------------
@@ -75,7 +68,23 @@ print(f"[INFO] PlantUML.jar: {PLANTUML_JAR}")
 
 
 # ----------------------------------------
-# 4. docs 以下の md を再帰的に取得
+# 4. Mermaid CLI の確認
+# ----------------------------------------
+def check_mmdc():
+    try:
+        subprocess.run(["mmdc.cmd", "-h"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except FileNotFoundError:
+        return False
+
+if not check_mmdc():
+    print("[ERROR] Mermaid CLI (mmdc.cmd) が見つかりません。", file=sys.stderr)
+    print("npm install -g @mermaid-js/mermaid-cli")
+    sys.exit(1)
+
+
+# ----------------------------------------
+# 5. docs 以下の md を再帰的に取得
 # ----------------------------------------
 files = list(docs_root.rglob("*.md"))
 nav_files = [f for f in files if f.name != "index.md"]
@@ -84,7 +93,7 @@ print(f"[INFO] Markdown ファイル数: {len(files)}")
 
 
 # ----------------------------------------
-# 5. ツリーナビ構造生成
+# 6. ツリーナビ構造生成
 # ----------------------------------------
 tree = {}
 
@@ -102,7 +111,7 @@ for file in nav_files:
 
 
 # ----------------------------------------
-# 6. ツリーナビ HTML 生成
+# 7. ツリーナビ HTML 生成
 # ----------------------------------------
 def build_nav_html(tree, indent=""):
     html = "<ul>\n"
@@ -129,7 +138,7 @@ nav_html = build_nav_html(tree)
 
 
 # ----------------------------------------
-# 7. PlantUML SVG 生成（md 名入り）
+# 8. PlantUML SVG 生成（md 名入り）
 # ----------------------------------------
 def generate_plantuml_svg(code: str, out_dir: Path, md_name: str) -> str:
     sha = hashlib.sha1(code.encode("utf-8")).hexdigest()
@@ -172,10 +181,50 @@ def generate_plantuml_svg(code: str, out_dir: Path, md_name: str) -> str:
 
 
 # ----------------------------------------
-# 8. plantuml ブロック変換
+# 9. Mermaid SVG 生成（md 名入り）
+# ----------------------------------------
+def generate_mermaid_svg(code: str, out_dir: Path, md_name: str) -> str:
+    sha = hashlib.sha1(code.encode("utf-8")).hexdigest()
+    base = Path(md_name).stem.replace(" ", "_")
+
+    svg_name = f"mermaid-{base}-{sha}.svg"
+    svg_path = out_dir / svg_name
+
+    if svg_path.exists():
+        print(f"[INFO] Mermaid SVG キャッシュ利用: {svg_name}")
+        return svg_name
+
+    print(f"[INFO] Mermaid 生成: {svg_name}")
+
+    tmp_mmd = out_dir / f"{sha}.mmd"
+    tmp_mmd.write_text(code, encoding="utf-8")
+
+    subprocess.run(
+        [
+            "mmdc.cmd",
+            "-i", str(tmp_mmd),
+            "-o", str(svg_path),
+            "-b", "transparent",
+            "--scale", "1.0"
+        ],
+        check=True,
+    )
+
+    tmp_mmd.unlink()
+
+    return svg_name
+
+
+# ----------------------------------------
+# 10. plantuml / mermaid ブロック変換
 # ----------------------------------------
 PLANTUML_BLOCK_RE = re.compile(
     r"```plantuml\s+([\s\S]*?)```",
+    re.MULTILINE,
+)
+
+MERMAID_BLOCK_RE = re.compile(
+    r"```mermaid\s+([\s\S]*?)```",
     re.MULTILINE,
 )
 
@@ -188,8 +237,17 @@ def replace_plantuml_blocks(md_text: str, out_dir: Path, md_name: str) -> str:
     return PLANTUML_BLOCK_RE.sub(repl, md_text)
 
 
+def replace_mermaid_blocks(md_text: str, out_dir: Path, md_name: str) -> str:
+    def repl(match):
+        code = match.group(1).strip()
+        svg_name = generate_mermaid_svg(code, out_dir, md_name)
+        return f'\n<img src="{svg_name}" alt="mermaid-diagram" />\n'
+
+    return MERMAID_BLOCK_RE.sub(repl, md_text)
+
+
 # ----------------------------------------
-# 9. Admonition 変換
+# 11. Admonition 変換（あなたのまま）
 # ----------------------------------------
 ADMONITION_RE = re.compile(
     r"^> \[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]\s*\n((?:> .*\n?)*)",
@@ -201,7 +259,6 @@ def convert_admonitions(md_text: str) -> str:
         kind = match.group(1).lower()
         body_block = match.group(2)
 
-        # "> " を削除
         lines = [line[2:].rstrip() for line in body_block.splitlines()]
         inner_html = "\n".join(f"<p>{line}</p>" for line in lines if line.strip())
 
@@ -217,10 +274,8 @@ def convert_admonitions(md_text: str) -> str:
     return ADMONITION_RE.sub(repl, md_text)
 
 
-
-
 # ----------------------------------------
-# 10. @import 展開（md 名伝播）
+# 12. @import 展開（mermaid 対応追加）
 # ----------------------------------------
 IMPORT_RE = re.compile(r'@import\s+"([^"]+)"')
 
@@ -251,20 +306,19 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
             svg = generate_plantuml_svg(code, out_dir, md_name)
             return f'\n<img src="{svg}" alt="{target.name}" />\n'
 
+        if suffix == ".mermaid":
+            code = target.read_text(encoding="utf-8")
+            svg = generate_mermaid_svg(code, out_dir, md_name)
+            return f'\n<img src="{svg}" alt="{target.name}" />\n'
+
         if suffix == ".md":
             return expand_imports(target, docs_root, visited)
 
-        if suffix == ".mermaid":
-            code = target.read_text(encoding="utf-8")
-            return wrap_codeblock("mermaid", code)
-
         if suffix == ".json":
-            code = target.read_text(encoding="utf-8")
-            return wrap_codeblock("json", code)
+            return wrap_codeblock("json", target.read_text(encoding="utf-8"))
 
         if suffix in [".yaml", ".yml"]:
-            code = target.read_text(encoding="utf-8")
-            return wrap_codeblock("yaml", code)
+            return wrap_codeblock("yaml", target.read_text(encoding="utf-8"))
 
         return target.read_text(encoding="utf-8")
 
@@ -283,13 +337,14 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
     expanded = IMPORT_RE.sub(replace, text)
 
     expanded = replace_plantuml_blocks(expanded, out_dir, md_name)
+    expanded = replace_mermaid_blocks(expanded, out_dir, md_name)
     expanded = convert_admonitions(expanded)
 
     return expanded
 
 
 # ----------------------------------------
-# 11. search.json 生成
+# 13. search.json 生成
 # ----------------------------------------
 search_index = []
 
@@ -313,7 +368,7 @@ for file in files:
 
 
 # ----------------------------------------
-# 12. HTML 生成
+# 14. HTML 生成
 # ----------------------------------------
 tmp_dir = out_dir / "_tmp"
 tmp_dir.mkdir(exist_ok=True)
@@ -346,7 +401,7 @@ for file in files:
 
 
 # ----------------------------------------
-# 13. 静的ファイルコピー
+# 15. 静的ファイルコピー
 # ----------------------------------------
 shutil.copy(css_file, out_dir)
 shutil.copy(search_js, out_dir)
