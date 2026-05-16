@@ -12,6 +12,7 @@ popd
 rem set DOCS_PATH=%~1
 set DOCS_PATH=..\..\docs
 
+set OUT=.\site
 
 if "%DOCS_PATH%"=="" (
     echo 使用方法: build.bat ^<docsフォルダのパス^>
@@ -21,6 +22,6 @@ if "%DOCS_PATH%"=="" (
 )
 
 rem powershell -ExecutionPolicy Bypass -File "%~dp0site.ps1" "%DOCS_PATH%"
-python site.py "%DOCS_PATH%"
+python site.py "%DOCS_PATH%" "%OUT%"
 rem move plantuml-*.png .\site\
 pause

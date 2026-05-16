@@ -11,16 +11,16 @@ from pathlib import Path
 # ----------------------------------------
 # 0. 引数チェック
 # ----------------------------------------
-if len(sys.argv) < 2:
-    print("ERROR: docs のパスが指定されていません。", file=sys.stderr)
+if len(sys.argv) < 3:
+    print("使い方: python build.py <docsフォルダ> <出力先フォルダ>", file=sys.stderr)
     sys.exit(1)
 
 docs_root = Path(sys.argv[1]).resolve()
+out_dir = Path(sys.argv[2]).resolve()
 if not docs_root.exists():
     print("ERROR: 指定された docs パスが存在しません。", file=sys.stderr)
     sys.exit(1)
 
-out_dir = Path("./site")
 template = Path("./template.html")
 css_file = Path("./style.css")
 search_js = Path("./search.js")
@@ -42,6 +42,7 @@ if not Path(PLANTUML_JAR).exists():
 if out_dir.exists():
     shutil.rmtree(out_dir)
 out_dir.mkdir(parents=True, exist_ok=True)
+
 
 
 # ----------------------------------------
