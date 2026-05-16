@@ -192,27 +192,31 @@ def replace_plantuml_blocks(md_text: str, out_dir: Path, md_name: str) -> str:
 # 9. Admonition 変換
 # ----------------------------------------
 ADMONITION_RE = re.compile(
-    r"^>\[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]\s*\n((?:> .*\n?)*)", re.MULTILINE
+    r"^> \[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]\s*\n((?:> .*\n?)*)",
+    re.MULTILINE
 )
 
 def convert_admonitions(md_text: str) -> str:
     def repl(match):
         kind = match.group(1).lower()
-        body = match.group(2)
+        body_block = match.group(2)
 
-        lines = [line[2:] for line in body.splitlines()]
+        # "> " を削除
+        lines = [line[2:].rstrip() for line in body_block.splitlines()]
         inner_html = "\n".join(f"<p>{line}</p>" for line in lines if line.strip())
 
         title = kind.capitalize()
 
-        return f'''
-<div class="admonition {kind}">
-  <p class="admonition-title">{title}</p>
-  {inner_html}
-</div>
-'''
+        return (
+            f'<div class="admonition {kind}">\n'
+            f'  <p class="admonition-title">{title}</p>\n'
+            f'{inner_html}\n'
+            f'</div>\n'
+        )
 
     return ADMONITION_RE.sub(repl, md_text)
+
+
 
 
 # ----------------------------------------
