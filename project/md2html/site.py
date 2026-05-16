@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 # ----------------------------------------
-# 0. 引数チェック
+# 0. 引数チェック（docs と out_dir の 2 つ）
 # ----------------------------------------
 if len(sys.argv) < 3:
     print("使い方: python build.py <docsフォルダ> <出力先フォルダ>", file=sys.stderr)
@@ -17,43 +17,74 @@ if len(sys.argv) < 3:
 
 docs_root = Path(sys.argv[1]).resolve()
 out_dir = Path(sys.argv[2]).resolve()
+
+print(f"[INFO] docs フォルダ: {docs_root}")
+print(f"[INFO] 出力先フォルダ: {out_dir}")
+
 if not docs_root.exists():
-    print("ERROR: 指定された docs パスが存在しません。", file=sys.stderr)
+    print(f"[ERROR] docs フォルダが存在しません: {docs_root}", file=sys.stderr)
     sys.exit(1)
 
+
+# ----------------------------------------
+# 1. 出力フォルダを作成（存在すれば削除 → 再作成）
+# ----------------------------------------
+if out_dir.exists():
+    print(f"[INFO] 既存の出力フォルダを削除します: {out_dir}")
+    shutil.rmtree(out_dir)
+
+print(f"[INFO] 出力フォルダを作成します: {out_dir}")
+out_dir.mkdir(parents=True, exist_ok=True)
+
+
+# ----------------------------------------
+# 2. その他の設定ファイル
+# ----------------------------------------
 template = Path("./template.html")
 css_file = Path("./style.css")
 search_js = Path("./search.js")
 
-# PlantUML.jar のパスは環境変数から取得
+if not template.exists():
+    print("[ERROR] template.html が見つかりません", file=sys.stderr)
+    sys.exit(1)
+
+if not css_file.exists():
+    print("[ERROR] style.css が見つかりません", file=sys.stderr)
+    sys.exit(1)
+
+if not search_js.exists():
+    print("[ERROR] search.js が見つかりません", file=sys.stderr)
+    sys.exit(1)
+
+
+# ----------------------------------------
+# 3. PlantUML.jar の確認
+# ----------------------------------------
 PLANTUML_JAR = os.environ.get("PLANTUML_JAR")
 if not PLANTUML_JAR:
     print("ERROR: 環境変数 PLANTUML_JAR が設定されていません。", file=sys.stderr)
     sys.exit(1)
 
-if not Path(PLANTUML_JAR).exists():
+PLANTUML_JAR = Path(PLANTUML_JAR).resolve()
+
+if not PLANTUML_JAR.exists():
     print(f"ERROR: PlantUML.jar が見つかりません: {PLANTUML_JAR}", file=sys.stderr)
     sys.exit(1)
 
-
-# ----------------------------------------
-# 1. 出力フォルダを作り直す
-# ----------------------------------------
-if out_dir.exists():
-    shutil.rmtree(out_dir)
-out_dir.mkdir(parents=True, exist_ok=True)
-
+print(f"[INFO] PlantUML.jar: {PLANTUML_JAR}")
 
 
 # ----------------------------------------
-# 2. docs 以下の md を再帰的に取得
+# 4. docs 以下の md を再帰的に取得
 # ----------------------------------------
 files = list(docs_root.rglob("*.md"))
 nav_files = [f for f in files if f.name != "index.md"]
 
+print(f"[INFO] Markdown ファイル数: {len(files)}")
+
 
 # ----------------------------------------
-# 3. ツリーナビ用データ構造生成
+# 5. ツリーナビ構造生成
 # ----------------------------------------
 tree = {}
 
@@ -71,7 +102,7 @@ for file in nav_files:
 
 
 # ----------------------------------------
-# 4. ツリーナビ HTML 生成
+# 6. ツリーナビ HTML 生成
 # ----------------------------------------
 def build_nav_html(tree, indent=""):
     html = "<ul>\n"
@@ -98,20 +129,19 @@ nav_html = build_nav_html(tree)
 
 
 # ----------------------------------------
-# 5. PlantUML SVG 生成（md 名入り）
+# 7. PlantUML SVG 生成（md 名入り）
 # ----------------------------------------
 def generate_plantuml_svg(code: str, out_dir: Path, md_name: str) -> str:
     sha = hashlib.sha1(code.encode("utf-8")).hexdigest()
-
-    # md ファイル名（拡張子なし）を安全に使う
     base = Path(md_name).stem.replace(" ", "_")
-
-    # SVG ファイル名に md 名を含める
     svg_name = f"plantuml-{base}-{sha}.svg"
     svg_path = out_dir / svg_name
 
     if svg_path.exists():
+        print(f"[INFO] SVG キャッシュ利用: {svg_name}")
         return svg_name
+
+    print(f"[INFO] PlantUML 生成: {svg_name}")
 
     tmp_puml = out_dir / f"{sha}.puml"
     tmp_puml.write_text(code, encoding="utf-8")
@@ -120,7 +150,7 @@ def generate_plantuml_svg(code: str, out_dir: Path, md_name: str) -> str:
         [
             "java",
             "-jar",
-            PLANTUML_JAR,
+            str(PLANTUML_JAR),
             "-tsvg",
             "-o",
             str(out_dir.resolve()),
@@ -142,7 +172,7 @@ def generate_plantuml_svg(code: str, out_dir: Path, md_name: str) -> str:
 
 
 # ----------------------------------------
-# 6. Markdown 内の ```plantuml を SVG に変換（md 名対応）
+# 8. plantuml ブロック変換
 # ----------------------------------------
 PLANTUML_BLOCK_RE = re.compile(
     r"```plantuml\s+([\s\S]*?)```",
@@ -159,7 +189,7 @@ def replace_plantuml_blocks(md_text: str, out_dir: Path, md_name: str) -> str:
 
 
 # ----------------------------------------
-# 7. Admonition 変換
+# 9. Admonition 変換
 # ----------------------------------------
 ADMONITION_RE = re.compile(
     r"^>\[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]\s*\n((?:> .*\n?)*)", re.MULTILINE
@@ -186,7 +216,7 @@ def convert_admonitions(md_text: str) -> str:
 
 
 # ----------------------------------------
-# 8. @import 展開（md 名伝播）
+# 10. @import 展開（md 名伝播）
 # ----------------------------------------
 IMPORT_RE = re.compile(r'@import\s+"([^"]+)"')
 
@@ -195,7 +225,7 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
         visited = set()
 
     md_path = md_path.resolve()
-    md_name = md_path.name  # ★ md 名を取得
+    md_name = md_path.name
 
     if md_path in visited:
         return f"\n<!-- WARNING: circular import detected: {md_path} -->\n"
@@ -255,7 +285,7 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
 
 
 # ----------------------------------------
-# 9. search.json 生成
+# 11. search.json 生成
 # ----------------------------------------
 search_index = []
 
@@ -279,7 +309,7 @@ for file in files:
 
 
 # ----------------------------------------
-# 10. HTML 生成
+# 12. HTML 生成
 # ----------------------------------------
 tmp_dir = out_dir / "_tmp"
 tmp_dir.mkdir(exist_ok=True)
@@ -288,6 +318,8 @@ for file in files:
     relative = str(file)[len(str(docs_root)) :].lstrip("\\/")
     flat = relative.replace("\\", "_").replace("/", "_").replace(".md", ".html")
     out_path = out_dir / flat
+
+    print(f"[INFO] HTML 生成: {out_path}")
 
     expanded_md = expand_imports(file, docs_root)
 
@@ -307,11 +339,10 @@ for file in files:
     ]
 
     subprocess.run(cmd, check=True)
-    print(f"生成: {out_path}")
 
 
 # ----------------------------------------
-# 11. 静的ファイルコピー
+# 13. 静的ファイルコピー
 # ----------------------------------------
 shutil.copy(css_file, out_dir)
 shutil.copy(search_js, out_dir)
