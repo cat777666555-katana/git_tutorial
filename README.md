@@ -4,21 +4,6 @@ My Git learning project.
 
 ## Description
 
-@import "test.puml"
-
-```plantuml
-@startuml
-title サンプルクラス図
-class Encoder {
-   + translate()
-}
-Interface Reader
-Reader <|-- CsvReader
-Encoder .> Reader
-@enduml
-
-```
-
 ## Getting Started
 
 ### Dependencies

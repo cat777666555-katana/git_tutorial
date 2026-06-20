@@ -2,7 +2,7 @@
 ---
 
 # ✅ まず結論：Windows なら winget で Node.js を入れるのが最強
-晃一さんの環境（Windows + VSCode）なら、  
+さんの環境（Windows + VSCode）なら、  
 **winget で Node.js LTS を入れるのが最も安全でトラブルが少ない**です。
 
 ---
