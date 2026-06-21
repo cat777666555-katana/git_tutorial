@@ -436,9 +436,8 @@ html.dark code span.sc { color: #ffa657 !important; }
 
 
 /* ------------------------------
-   Lightbox（ダウンロードボタンなし版）
+   Lightbox（GitHub Docs 風）
 ------------------------------ */
-
 #image-viewer.hidden {
   display: none;
 }
@@ -446,7 +445,12 @@ html.dark code span.sc { color: #ffa657 !important; }
 #image-viewer {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.85);
+
+  /* ★ GitHub Docs 風：白ベース + ぼかし */
+  background: rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
   display: flex;
   justify-content: center;
   align-items: center;
@@ -466,19 +470,30 @@ html.dark code span.sc { color: #ffa657 !important; }
   object-fit: contain;
   cursor: zoom-out;
   user-select: none;
-  z-index: 10000;
+  transition: transform 0.15s ease;
 }
 
+/* 閉じるボタン（GitHub Docs 風） */
 #image-close {
   position: absolute;
   top: 20px;
   right: 30px;
-  font-size: 40px;
-  color: white;
+  font-size: 36px;
+  color: #24292f;
   cursor: pointer;
   z-index: 10001;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
 }
 
+#image-close:hover {
+  background: rgba(255,255,255,0.9);
+}
+
+/* ズームボタン */
 #image-zoom-controls {
   position: absolute;
   bottom: 30px;
@@ -489,23 +504,41 @@ html.dark code span.sc { color: #ffa657 !important; }
 }
 
 #image-zoom-controls button {
-  font-size: 24px;
+  font-size: 22px;
   padding: 10px 16px;
   border-radius: 6px;
-  border: none;
+  border: 1px solid #d0d7de;
   cursor: pointer;
-  background: #fff;
+  background: #ffffffcc;
+  backdrop-filter: blur(4px);
+  transition: background 0.2s;
+}
+
+#image-zoom-controls button:hover {
+  background: #ffffff;
+}
+
+/* ダークモード */
+html.dark #image-viewer {
+  background: rgba(230, 230, 230, 0.6);
+  backdrop-filter: blur(10px);
+}
+
+html.dark #image-close {
+  background: rgba(0,0,0,0.5);
+  color: #e6edf3;
 }
 
 html.dark #image-zoom-controls button {
-  background: #161b22;
-  color: #c9d1d9;
+  background: rgba(0,0,0,0.5);
+  color: #e6edf3;
+  border-color: #30363d;
 }
 
 /* Mermaid 図の巨大化防止（決定版） */
 #content img[alt="mermaid-diagram"] {
   width: 100% !important;
-  max-width: 200px;   /* ← 好きな最大幅に調整可能 */
+  max-width: 400px;   /* ← 好きな最大幅に調整可能 */
   height: auto !important;
   display: block;
   margin: 20px auto;  /* 中央寄せ */

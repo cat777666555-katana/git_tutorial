@@ -146,6 +146,7 @@ def generate_plantuml_svg(code: str, out_dir: Path, md_name: str) -> str:
     svg_name = f"plantuml-{base}-{sha}.svg"
     svg_path = out_dir / svg_name
 
+    # キャッシュ
     if svg_path.exists():
         print(f"[INFO] SVG キャッシュ利用: {svg_name}")
         return svg_name
@@ -155,26 +156,44 @@ def generate_plantuml_svg(code: str, out_dir: Path, md_name: str) -> str:
     tmp_puml = out_dir / f"{sha}.puml"
     tmp_puml.write_text(code, encoding="utf-8")
 
-    subprocess.run(
-        [
-            "java",
-            "-jar",
-            str(PLANTUML_JAR),
-            "-tsvg",
-            "-o",
-            str(out_dir.resolve()),
-            str(tmp_puml),
-        ],
-        check=True,
-    )
+    try:
+        subprocess.run(
+            [
+                "java",
+                "-jar",
+                str(PLANTUML_JAR),
+                "-tsvg",
+                "-o",
+                str(out_dir.resolve()),
+                str(tmp_puml),
+            ],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except subprocess.CalledProcessError as e:
+        print("[WARN] PlantUML 生成失敗。コードをそのまま表示します。")
+        print("[WARN] PlantUML stderr:", e.stderr.decode("utf-8", errors="ignore"))
 
+        # エラー時はコードブロックとして返す
+        fallback = f"plantuml-error-{sha}.txt"
+        fallback_path = out_dir / fallback
+        fallback_path.write_text(code, encoding="utf-8")
+        tmp_puml.unlink()
+        return fallback  # HTML 側では <img> ではなくテキスト扱いにする
+
+    # 正常時
     svg_files = list(out_dir.glob("*.svg"))
     if not svg_files:
-        raise RuntimeError("PlantUML が SVG を生成しませんでした")
+        print("[WARN] PlantUML が SVG を生成しませんでした。")
+        fallback = f"plantuml-error-{sha}.txt"
+        fallback_path = out_dir / fallback
+        fallback_path.write_text(code, encoding="utf-8")
+        tmp_puml.unlink()
+        return fallback
 
     generated_svg = max(svg_files, key=lambda p: p.stat().st_mtime)
     generated_svg.rename(svg_path)
-
     tmp_puml.unlink()
 
     return svg_name
@@ -205,7 +224,7 @@ def generate_mermaid_svg(code: str, out_dir: Path, md_name: str) -> str:
             "-i", str(tmp_mmd),
             "-o", str(svg_path),
             "-b", "transparent",
-            "--scale", "1.0"
+            "--scale", "2.0"
         ],
         check=True,
     )
@@ -223,11 +242,6 @@ PLANTUML_BLOCK_RE = re.compile(
     re.MULTILINE,
 )
 
-MERMAID_BLOCK_RE = re.compile(
-    r"```mermaid\s+([\s\S]*?)```",
-    re.MULTILINE,
-)
-
 def replace_plantuml_blocks(md_text: str, out_dir: Path, md_name: str) -> str:
     def repl(match):
         code = match.group(1).strip()
@@ -237,11 +251,53 @@ def replace_plantuml_blocks(md_text: str, out_dir: Path, md_name: str) -> str:
     return PLANTUML_BLOCK_RE.sub(repl, md_text)
 
 
+# 誤爆しないように、```mermaid の直後と ``` の直前に改行を要求
+MERMAID_BLOCK_RE = re.compile(
+    r"```mermaid\n([\s\S]*?)\n```",
+    re.MULTILINE,
+)
+
+# Mermaid の diagram type 一覧
+MERMAID_TYPES = (
+    "graph", "flowchart", "sequenceDiagram", "classDiagram",
+    "stateDiagram", "erDiagram", "journey", "gantt",
+    "pie", "mindmap", "timeline"
+)
+
+def is_valid_mermaid(code: str) -> bool:
+    """Mermaid の diagram type で始まっているか確認"""
+    stripped = code.strip()
+    if not stripped:
+        return False
+    first = stripped.splitlines()[0].strip()
+    return first.startswith(MERMAID_TYPES)
+
+
 def replace_mermaid_blocks(md_text: str, out_dir: Path, md_name: str) -> str:
+
     def repl(match):
         code = match.group(1).strip()
-        svg_name = generate_mermaid_svg(code, out_dir, md_name)
-        return f'\n<img src="{svg_name}" alt="mermaid-diagram" />\n'
+
+        # Mermaid ではない → そのままコードブロックとして残す
+        if not is_valid_mermaid(code):
+            print("[WARN] Mermaid ではないためスキップ:", code[:40])
+            return f"```mermaid\n{code}\n```"
+
+        # Mermaid SVG 生成
+        try:
+            svg_name = generate_mermaid_svg(code, out_dir, md_name)
+            return f'\n<img src="{svg_name}" alt="mermaid-diagram" />\n'
+
+        except Exception as e:
+            print("[WARN] Mermaid 生成失敗:", e)
+
+            # エラー時はコードを保存して fallback
+            sha = hashlib.sha1(code.encode("utf-8")).hexdigest()
+            fallback = f"mermaid-error-{sha}.txt"
+            fallback_path = out_dir / fallback
+            fallback_path.write_text(code, encoding="utf-8")
+
+            return f"\n<!-- Mermaid error: {fallback} -->\n"
 
     return MERMAID_BLOCK_RE.sub(repl, md_text)
 
@@ -275,7 +331,7 @@ def convert_admonitions(md_text: str) -> str:
 
 
 # ----------------------------------------
-# 12. @import 展開（mermaid 対応追加）
+# 12. @import 展開（安全版）
 # ----------------------------------------
 IMPORT_RE = re.compile(r'@import\s+"([^"]+)"')
 
@@ -286,8 +342,9 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
     md_path = md_path.resolve()
     md_name = md_path.name
 
+    # 循環参照防止
     if md_path in visited:
-        return f"\n<!-- WARNING: circular import detected: {md_path} -->\n"
+        return f'\n<!-- WARNING: circular import detected: {md_path} -->\n'
     visited.add(md_path)
 
     text = md_path.read_text(encoding="utf-8")
@@ -295,49 +352,77 @@ def expand_imports(md_path: Path, docs_root: Path, visited=None):
     def wrap_codeblock(ext: str, code: str):
         return f"\n```{ext}\n{code}\n```\n"
 
-    def process_single_import(target: Path):
+    # -------------------------
+    # import 1件を処理する関数
+    # -------------------------
+    def process_single_import(target: Path, rel: str):
+        # フォルダは読み込めない → @import をそのまま残す
+        if target.is_dir():
+            return f'@import "{rel}"'
+
+        # ファイルが存在しない → @import をそのまま残す
         if not target.exists():
-            return f"\n<!-- ERROR: not found: {target} -->\n"
+            return f'@import "{rel}"'
 
         suffix = target.suffix.lower()
 
+        # --- PlantUML ---
         if suffix == ".puml":
             code = target.read_text(encoding="utf-8")
             svg = generate_plantuml_svg(code, out_dir, md_name)
             return f'\n<img src="{svg}" alt="{target.name}" />\n'
 
+        # --- Mermaid ---
         if suffix == ".mermaid":
             code = target.read_text(encoding="utf-8")
             svg = generate_mermaid_svg(code, out_dir, md_name)
             return f'\n<img src="{svg}" alt="{target.name}" />\n'
 
+        # --- Markdown（再帰展開） ---
         if suffix == ".md":
             return expand_imports(target, docs_root, visited)
 
+        # --- JSON ---
         if suffix == ".json":
             return wrap_codeblock("json", target.read_text(encoding="utf-8"))
 
+        # --- YAML ---
         if suffix in [".yaml", ".yml"]:
             return wrap_codeblock("yaml", target.read_text(encoding="utf-8"))
 
+        # --- その他のファイル ---
         return target.read_text(encoding="utf-8")
 
+    # -------------------------
+    # @import "xxx" を置換する
+    # -------------------------
     def replace(match):
         rel = match.group(1)
         pattern = (md_path.parent / rel).resolve()
 
+        # --- glob パターン ---
         if any(ch in rel for ch in "*?["):
             matched = list(md_path.parent.glob(rel))
+
+            # フォルダを除外
+            matched = [t for t in matched if t.is_file()]
+
             if not matched:
-                return f"\n<!-- WARNING: glob not matched: {rel} -->\n"
-            return "\n".join(process_single_import(t) for t in matched)
+                return f'@import "{rel}"'
 
-        return process_single_import(pattern)
+            return "\n".join(process_single_import(t, rel) for t in matched)
 
+        # --- 単一ファイル ---
+        return process_single_import(pattern, rel)
+
+    # @import 展開
     expanded = IMPORT_RE.sub(replace, text)
 
+    # plantuml / mermaid ブロック変換
     expanded = replace_plantuml_blocks(expanded, out_dir, md_name)
     expanded = replace_mermaid_blocks(expanded, out_dir, md_name)
+
+    # admonition 変換
     expanded = convert_admonitions(expanded)
 
     return expanded
